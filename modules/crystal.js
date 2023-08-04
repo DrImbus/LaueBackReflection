@@ -7,7 +7,7 @@ in the lab-system (takes rotation into account)
 */
 
 import { Vector3, Plane, Line, rotateEulerAngles} from "./linear_algebra.js";
-import { sqrt, cos, sin , getHKL, round, atan2, abs} from "./utility.js";
+import { sqrt, cos, sin , getHKL, round, atan2, abs, wavelength_to_voltage} from "./utility.js";
 
 import atom_properties from "../atom_properties.json" assert { type: "json" };
 import * as LAUE_VIEW from "./laue_view.js";
@@ -81,6 +81,8 @@ var min_lambda = 0
 var visible_hkl = [];
 var positions = [];
 var intensities = [];
+var wavelengths = [];
+var twoThetas = [];
 
 var reflections = [];
 
@@ -387,6 +389,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
     visible_hkl = [];
     positions = [];
     intensities = [];
+    wavelengths = [];
+    twoThetas = [];
     //eventually to be replaced by 
     reflections = [];
 
@@ -487,6 +491,16 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             visible_hkl.push(filtered_hkl[i])
 
             /**
+             * Calculating the angle and the wavelength is only necessary if one wants to display the correct intensity.
+             * So to enhance performance this used to be done only if consider_spectrum or consider_structure_factor are true
+             * But we want to display them in the infoboxes so we have to calculate the angle and wavelength here
+             */
+            const angle = 90-Vector3.getAngle(reflectedBeam, normalVector);
+            const wavelength = 2*getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2])*sin(angle)
+
+            twoThetas.push(angle)
+            wavelengths.push(wavelength)
+            /**
              * calculate its intensity determined by the spectrum and the structure_factor
              * 
              */
@@ -494,17 +508,20 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 //the default intensity of every point is
                 let temp_intensity = 1
                 if(consider_spectrum){
+
                     /**
                      * the angle between the incoming ray and the plane 
                     */
+                   /*
                     const angle = 90-Vector3.getAngle(reflectedBeam, normalVector);
                     const wavelength = 2*getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2])*sin(angle)
+                    */
+                    //twoThetas.push(angle)
+                    //wavelengths.push(wavelength)
+
                     temp_intensity *= getSpectrum(wavelength)
                     temp_intensity*=wavelength**4/sin(angle)**2
                     temp_intensity*=(1+cos(2*angle)^2)/2
-                    //temp_intensity *= getSpectrum(wavelength)*1/(sin(angle)*sin(2*angle))
-                    
-
 
                 }
                 if(consider_structure_factor){
@@ -529,8 +546,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
      * (They all land on the same spot on the screen)
      */
     const temp_reflections = [];
-    let safetycounter = 0
-    while(visible_hkl.length > 0 && safetycounter < 10000){
+    //let safetycounter = 0
+    while(visible_hkl.length > 0 /*&& safetycounter < 10000*/){
         const temp_result = []
         let currentHKL = visible_hkl[0]
         let counter = 0
@@ -541,13 +558,17 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                     temp_result.push({
                         laue_index:element_to_compare,
                         screen_position:positions[counter],
-                        intensity: intensities[counter]
+                        intensity: intensities[counter],
+                        twoTheta: twoThetas[counter],
+                        wavelength: wavelengths[counter]
                     })
                 }
                 const index_to_remove = visible_hkl.indexOf(element_to_compare)
                 visible_hkl.splice(index_to_remove,1)
                 positions.splice(index_to_remove,1)
                 intensities.splice(index_to_remove,1)
+                twoThetas.splice(index_to_remove, 1)
+                wavelengths.splice(index_to_remove,1)
             }else{
                 counter++;
             }
@@ -557,7 +578,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             temp_reflections.push(temp_result)
         }
         
-        safetycounter++;
+        //safetycounter++;
     }
     reflections = []
     for(let i = 0; i < temp_reflections.length; i++){
@@ -566,15 +587,24 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         }
         let sum_intensities = 0
         let numberOfOverlappingReflections = 0
+        let avgAngle = 0
+        let avgWavelength = 0
         for(let j = 0; j < temp_reflections[i].length; j++){
             sum_intensities+=temp_reflections[i][j].intensity
             numberOfOverlappingReflections++;
+            avgAngle +=temp_reflections[i][j].twoTheta
+            avgWavelength += temp_reflections[i][j].wavelength
         }
+        avgAngle /= numberOfOverlappingReflections
+        avgWavelength /= numberOfOverlappingReflections
+
         reflections.push({
             laue_index: temp_reflections[i][0].laue_index,
             screen_position: temp_reflections[i][0].screen_position,
             intensity: sum_intensities,
-            count : numberOfOverlappingReflections
+            count : numberOfOverlappingReflections,
+            twoTheta: avgAngle,
+            wavelength: avgWavelength
         })
     }
 
@@ -610,6 +640,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
     totalTime+= Date.now()-startTime
     totalCount+=1
     //console.log("averageTime:", totalTime/totalCount)
+
 }
 
 export function getLaueReflections(){

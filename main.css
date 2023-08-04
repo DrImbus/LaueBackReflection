@@ -247,17 +247,48 @@ body{
     
 }
 
-#laue-picture-container.active{
+#laue-picture-container.info{
     cursor:help;
 }
 
+#laue-picture-container.rotate{
+    cursor:grab;
+}
+
+#laue-picture-container.move{
+    cursor:move;
+}
+
+#laue-picture-container.rotating{
+    cursor:grabbing;
+}
+
+/*********************************
+
+    laue picture ui 
+
+*********************************/
 #laue-picture-ui{
     position: absolute;
-    bottom: 0;
-    left: 0;
+    bottom: 10px;
+    left: 0px;
     display: flex;
     flex-direction: row;
-    border: 1px solid green;
+
+}
+
+.laue-picture-ui-button{
+    padding: 5px;
+    height: 30px;
+    background-color: grey;
+}
+
+.laue-picture-ui-button:hover{
+    background-color: white;
+}
+
+.laue-picture-ui-button.active{
+    background-color: white;
 }
 
 #laue-picture-ui img{
@@ -265,17 +296,19 @@ body{
     height: 100%;
 }
 
-.laue-picture-ui-button{
-    padding: 5px;
-    height: 30px;
-    background-color: white;
-}
 
 #laue-picture-container > canvas{
     width: 100% !important;
     height: 100vh;
     background-color: rgb(10,10,10);
 }
+
+
+/*********************************
+
+      reflection infobox
+
+*********************************/
 
 #laue-infobox-container{
     position:absolute;
@@ -284,6 +317,7 @@ body{
     width: 100%;
     height: 100%;
     pointer-events: none;
+    margin-left: 10px;
 }
 
 .reflection-infobox{
@@ -304,13 +338,7 @@ body{
 }
 
 
-#investigate-reflection:hover{
-    background-color: grey;
-}
 
-#investigate-reflection.active{
-    background-color: grey;
-}
 
 
 /*remove arrows of number input*/

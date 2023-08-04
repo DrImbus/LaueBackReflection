@@ -87,7 +87,10 @@ const wavelength_input = document.getElementById("wavelength-input")
 //laue canvas
 const laue_canvas = document.getElementById("laue-picture-container")
 const laue_canvas_rect = laue_canvas.getBoundingClientRect()
+
 const investigate_button = document.getElementById("investigate-reflection")
+const rotate_button = document.getElementById("rotate-reflection")
+const move_button = document.getElementById("move-reflection")
 
 /**
  * voltage_input and wavelength_input ultimately controll the same thing -> the spectrum of the x-rays calculated in crystal.js
@@ -104,6 +107,7 @@ wavelength_input.value = wavelength_input.value = voltage_to_wavelength(Number(v
  * everywhere because is keeps the functions from being called every 5 ms  (this happens when dragging the laue image)
  */
 let updateLaue = true
+let recalculateReflections = true
 
 /**************************************************
 
@@ -167,12 +171,10 @@ LAUE_VIEW.setCutoutRadius(
 )
 
 //set screen width and height
-console.log("setting width: ",screen_width_input.value)
 CRYSTAL.setScreenWidth(
     
     Number(screen_width_input.value)
 )
-console.log("setting height: ",screen_height_input.value)
 CRYSTAL.setScreenHeight(
     Number(screen_height_input.value)
 )
@@ -641,17 +643,65 @@ wavelength_input.addEventListener("input",event => {
     updateLaue = true;
 })
 
+/*******************
+ * 
+ * laue canvas buttons
+ * 
+ ******************/
+
 investigate_button.addEventListener("click", event => {
-    investigate_button.classList.toggle("active")
-    laue_canvas.classList.toggle("active")
+
     if(investigate_button.classList.contains("active")){
-        console.log("activated")
-        laue_search_mode = true
+        
     }else{
-        console.log("deactivated")
-        laue_search_mode = false
-    }
+        investigate_button.classList.add("active")
+        rotate_button.classList.remove("active")
+        move_button.classList.remove("active")
     
+        laue_canvas.classList.remove("move")
+        laue_canvas.classList.remove("rotate")
+
+        laue_canvas.classList.add("info")
+        
+
+        laue_mode = "investigate"
+    }
+})
+
+rotate_button.addEventListener("click", event => {
+
+    if(rotate_button.classList.contains("active")){
+        
+    }else{
+        investigate_button.classList.remove("active")
+        rotate_button.classList.add("active")
+        move_button.classList.remove("active")
+
+        laue_canvas.classList.remove("move")
+        laue_canvas.classList.remove("info")
+    
+        laue_canvas.classList.add("rotate")
+
+        laue_mode = "rotate"
+    }
+})
+
+move_button.addEventListener("click", event => {
+
+    if(move_button.classList.contains("active")){
+        
+    }else{
+        investigate_button.classList.remove("active")
+        rotate_button.classList.remove("active")
+        move_button.classList.add("active")
+
+        laue_canvas.classList.remove("info")
+        laue_canvas.classList.remove("rotate")
+    
+        laue_canvas.classList.add("move")
+
+        laue_mode = "move"
+    }
 })
 
 /**************************************************
@@ -694,7 +744,8 @@ var mouseStart = new Vector2(0,0)
 var leftClick = false;
 var mouseDown = false;
 var mouseOver = "none" //can be "laue" "basis", "lab" or none
-var laue_search_mode = false;
+
+var laue_mode = "rotate"; //can be rotate, move or investigate
 
 //rotate the crystal by dragging the laue-picture requires to know the starting position
 //let startRot = [x_rotation_input.value,y_rotation_input.value,z_rotation_input.value];
@@ -722,11 +773,14 @@ document.addEventListener("mousedown", event => {
     if(LAUE_VIEW.contains(event.x, event.y)){
         mouseOver = "laue"
         //startRot = [x_rotation_input.value,y_rotation_input.value,z_rotation_input.value]
-        if(laue_search_mode){
+        if(laue_mode == "investigate"){
             if(LAUE_VIEW.clickInBoundingBox(event.x,event.y)){
-                LAUE_VIEW.getReflectionAt(event.x,event.y)
+                LAUE_VIEW.getReflectionAt(event.x,event.y, false, event.button == 2 /*=> rightclick */)
             }   
+        }else if (laue_mode == "rotate"){
+            laue_canvas.classList.add("rotating")
         }
+
     }
 })
 
@@ -737,11 +791,12 @@ document.getElementById("laue-picture-container").addEventListener("contextmenu"
 
 document.addEventListener("mouseup",event => {
     mouseDown = false;
-    if(mouseOver == "laue" && laue_search_mode){
+    if(mouseOver == "laue" && laue_mode=="investigate" && event.button == 0/*left click*/){
         if(LAUE_VIEW.clickInBoundingBox(event.x,event.y)){
             LAUE_VIEW.getReflectionAt(event.x,event.y, true)//lock the current info box
         }   
     }
+    laue_canvas.classList.remove("rotating")
 })
 
 document.addEventListener("mousemove",event => {
@@ -758,11 +813,11 @@ document.addEventListener("mousemove",event => {
 
             LAB_VIEW.rotate(event.x-mouseStart.x, event.y-mouseStart.y);
         }
-        if(mouseOver == "laue" && !laue_search_mode){
+        if(mouseOver == "laue" && laue_mode == "rotate"){
             /**
              * move laue view by rotating the cube around the global z/x-axis
              *
-             */        
+             */       
             if(event.buttons == 1){
                 const deltaX = (event.x-mouseStart.x)*0.06
                 const deltaY = (event.y-mouseStart.y)*0.06
@@ -825,17 +880,19 @@ document.addEventListener("mousemove",event => {
                 CRYSTAL.setRotation(x,y,z);
                 LAB_VIEW.setRotation(x,y,z);
                 
-                updateLaue = true;
-                
-                
+                updateLaue = true; 
             }
-            //console.log(Date.now()-time)
-        }else if(mouseOver == "laue" && laue_search_mode){
-            console.log("searching")
+        }else if(mouseOver == "laue" && laue_mode=="investigate" && event.buttons == 1){
+            
             if(LAUE_VIEW.clickInBoundingBox(event.x,event.y)){
-                LAUE_VIEW.getReflectionAt(event.x,event.y)
-            }   
-
+                LAUE_VIEW.getReflectionAt(event.x,event.y, false, false)
+            }  
+        }else if(mouseOver == "laue" && laue_mode=="move"&& event.buttons == 1){
+            const deltaX = (event.x-mouseStart.x)
+            const deltaY = (event.y-mouseStart.y)
+            LAUE_VIEW.move(deltaX, deltaY)
+            updateLaue = true;
+            recalculateReflections = false;
         }
         mouseStart.x = event.x;
         mouseStart.y = event.y;
@@ -918,7 +975,16 @@ function updatingLaueLoop(){
         return
     }
     updateLaue = false
-    CRYSTAL.calculateLaueReflections()
+
+    if(recalculateReflections){
+        CRYSTAL.calculateLaueReflections()
+    }else{
+        //recalculating the laue indices is the default
+        //it can only be skipped if the canvas has been moved (the reflections remain the same only moved by an offset)
+        recalculateReflections = true
+    }
+    
+
     LAUE_VIEW.updateCanvas();
     setTimeout(updatingLaueLoop, 5)
 }

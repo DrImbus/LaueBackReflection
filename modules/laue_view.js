@@ -7,8 +7,7 @@ import * as THREE from '../node_modules/three/build/three.module.js'
 
 var mid_x;
 var mid_y;
-var x_unit_2_pixel = 4;
-var y_unit_2_pixel = 4;
+var pixel_per_mm = 4;
 var cutout_radius = 2
 var screen_width = 100//mm
 var screen_height = 100//mm
@@ -20,6 +19,10 @@ canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight; 
 mid_x = canvas.width/2;
 mid_y = canvas.height/2;
+
+var globalOffsetX = 0;
+var globalOffsetY = 0;
+
 
 
 /**
@@ -35,7 +38,7 @@ const infobox_prefab = infobox_container.firstElementChild.outerHTML;
 const laue_picture_ui = document.getElementById("laue-picture-ui")
 
 
-const highlightedHKL = []
+let highlightedHKL = []
 let currentlySelectedHKL = undefined
 
 window.onresize = () => {
@@ -58,21 +61,45 @@ export function size_function(x){
 }
 
 //transform physical coordinate to screen coordinate
-function p2s(position){
-    return [position[0]*x_unit_2_pixel+mid_x, position[1]*(-y_unit_2_pixel)+mid_y]
+function physical2screen(position){
+
+    const physicalX = position[0]
+    const physicalY = position[1]
+
+    const screenX = (physicalX+globalOffsetX)*pixel_per_mm + mid_x;
+    const screenY = (-1)*(physicalY+globalOffsetY)*pixel_per_mm + mid_y;
+
+    return[screenX, screenY]
+
+    //return [position[0]*x_unit_2_pixel+mid_x, position[1]*(-y_unit_2_pixel)+mid_y]
+
+
+}
+
+
+function physicalLength2ScreenLenth(length){
+    return length*pixel_per_mm;
 }
 
 //inverse of p2s => transform screen coordinates (in pixel) to physical coordinates (in mm):
-function s2p(screenPosition){
+function screen2Physical(screenPosition){
+
+    const screenX = screenPosition[0]-canvasContainer.getBoundingClientRect().x
+    const screenY = canvasContainer.getBoundingClientRect().height - (screenPosition[1]-canvasContainer.getBoundingClientRect().y);
+
+    const physicalX = (screenX-mid_x)/pixel_per_mm - globalOffsetX;
+    const physicalY = (screenY-mid_y)/pixel_per_mm - globalOffsetY;
+
+    return [physicalX, physicalY]
+
+    /*
     const screenX = screenPosition[0]-canvasContainer.getBoundingClientRect().x
     const screenY =canvasContainer.getBoundingClientRect().height - (screenPosition[1]-canvasContainer.getBoundingClientRect().y);
-    
-    return[(screenX-mid_x)/x_unit_2_pixel,(screenY-mid_y)/y_unit_2_pixel]
+
+    return[(screenX-mid_x-globalOffsetX)/x_unit_2_pixel,(screenY-mid_y+globalOffsetY)/y_unit_2_pixel]*/
 }
 
-function l2s(length){
-    return length*(x_unit_2_pixel+y_unit_2_pixel)/2;
-}
+
 
 export function getHalfDiagonal(){
     const pixelWidth = canvas.width;
@@ -83,10 +110,11 @@ export function getHalfDiagonal(){
     return Math.sqrt(physicalWidth**2+physicalHeight**2)/2
 }
 
+
 function drawPoint(pos,color='white', size=0.05){
     context.beginPath();
-    const screen_pos = p2s(pos)
-    context.arc(screen_pos[0], screen_pos[1], l2s(size), 0, 2 * Math.PI, false);
+    const screen_pos = physical2screen(pos)
+    context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(size), 0, 2 * Math.PI, false);
     context.fillStyle = color;
     context.fill();
     context.lineWidth = 0;
@@ -94,8 +122,8 @@ function drawPoint(pos,color='white', size=0.05){
 
 function drawCircle(pos, color="red",radius,lineWidth){
     context.beginPath();
-    const screen_pos = p2s(pos)
-    context.arc(screen_pos[0], screen_pos[1], l2s(radius), 0, 2 * Math.PI, false);
+    const screen_pos = physical2screen(pos)
+    context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(radius), 0, 2 * Math.PI, false);
     context.strokeStyle = color;
     context.lineWidth = lineWidth;
     context.stroke();
@@ -103,24 +131,24 @@ function drawCircle(pos, color="red",radius,lineWidth){
 }
 
 function drawRect(x_min, y_min, width, height, fill_color="black" ,stroke_color = "red", line_width = 1){
-    const bottomLeftCorner = p2s([x_min,y_min])
+    const bottomLeftCorner = physical2screen([x_min,y_min])
 
     context.fillStyle = fill_color;
-    context.fillRect(bottomLeftCorner[0],bottomLeftCorner[1], l2s(width), -l2s(height));
+    context.fillRect(bottomLeftCorner[0],bottomLeftCorner[1], physicalLength2ScreenLenth(width), -physicalLength2ScreenLenth(height));
 
     context.strokeStyle = 'red';
     context.lineWidth = line_width;
     
     
     //draw rect draws the y-axis in the opposite direction thats why the height has minus sign
-    context.strokeRect(bottomLeftCorner[0],bottomLeftCorner[1], l2s(width), -l2s(height));
+    context.strokeRect(bottomLeftCorner[0],bottomLeftCorner[1], physicalLength2ScreenLenth(width), -physicalLength2ScreenLenth(height));
     
 }
 
 function drawLine(start_pos, end_pos, color='black', size = 1){
     context.beginPath();
-    const start_screen_pos = p2s(start_pos)
-    const end_screen_pos = p2s(end_pos)
+    const start_screen_pos = physical2screen(start_pos)
+    const end_screen_pos = physical2screen(end_pos)
 
     context.moveTo(start_screen_pos[0], start_screen_pos[1]);
     context.lineTo(end_screen_pos[0], end_screen_pos[1]);
@@ -131,16 +159,8 @@ function drawLine(start_pos, end_pos, color='black', size = 1){
 }
 
 export function updateCanvas(){   
+  
     const reflections = CRYSTAL.getLaueReflections();
-
-    
-/*
-    const points = []
-    const intensities = []
-    for(let i = 0; i < reflections.length; i++){
-        points.push(reflections[i].screen_position)
-        intensities.push(reflections[i].intensity)
-    }*/
     
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = `rgb(${50},${50},${50})`;
@@ -159,11 +179,13 @@ export function updateCanvas(){
 
     clearInfoBoxes();
 
+    console.log("updating canvas")
     for(let i = 0; i < reflections.length; i++){
         const color = `rgb(255,255,255,${reflections[i].intensity})`
         drawPoint(reflections[i].screen_position, color, size_function(reflections[i].intensity) ) //size  = 0.05
         
         if(reflectionIsHighlighted(reflections[i])){
+            console.log("highglighted reflectiobn: ", reflections[i])
             displayReflectionInfo(reflections[i])
         }
         counter++
@@ -181,16 +203,14 @@ export function contains(x,y){
     return rectContains(canvasContainer.getBoundingClientRect(), x,y);
 }
 
-
-
 function getScale(){
-    return [x_unit_2_pixel, y_unit_2_pixel]
+    return pixel_per_mm;
 }
 
 function setScale(x_pixels,y_pixels){
     x_unit_2_pixel = clamp(x_pixels, 4, 100);
     y_unit_2_pixel = clamp(y_pixels, 4, 100);
-    updateCanvas();
+    
 }
 
 export function setScreenWidth(w){
@@ -207,12 +227,15 @@ export function setCutoutRadius(x){
 
 
 export function zoom(deltaZ){
-    deltaZ *= -1;
-    const max_zoom = 200
-    const min_zoom = 3
 
-    const currentScale = getScale();
-    setScale(currentScale[0] * (1+deltaZ/10), currentScale[1]*(1+deltaZ/10))
+
+
+    deltaZ *= -1;
+
+
+    pixel_per_mm *= (1+deltaZ/10)
+
+    updateCanvas();
 }
 
 /**
@@ -220,11 +243,14 @@ export function zoom(deltaZ){
  * the x-axis in the laue-picture etc.
  */
 export function move(deltaX, deltaY){
-    //console.log("moving")
+
+    globalOffsetX += deltaX / pixel_per_mm;
+    globalOffsetY -= deltaY / pixel_per_mm;
+
 }
 
-export function getReflectionAt(x,y, lock = false){
-    const mousePos = s2p([x,y]);
+export function getReflectionAt(x,y, lock = false, remove = false){
+    const mousePos = screen2Physical([x,y]);
     const reflections = CRYSTAL.getLaueReflections();
     let minReflection = reflections[0];
     let minDistance = Math.sqrt((mousePos[0]-minReflection.screen_position[0])**2+(mousePos[1]-minReflection.screen_position[1])**2);
@@ -236,15 +262,43 @@ export function getReflectionAt(x,y, lock = false){
             minDistance = distance
         }
     }
-    if(lock){
-        highlightedHKL.push(minReflection.laue_index)
+    if(remove){
+        
+        if (currentlySelectedHKL[0]==minReflection.laue_index[0]
+            &&currentlySelectedHKL[1]==minReflection.laue_index[1]
+            &&currentlySelectedHKL[2]==minReflection.laue_index[2]){
+                currentlySelectedHKL = ["a","a","a"]
+                updateCanvas()
+                
+            }
+
+        let newHighlightedHKL = []
+        console.log("removing: ",minReflection)
+        console.log("length: ", highlightedHKL.length)
+        for(let i = 0; i < highlightedHKL.length; i++){
+            console.log("checkgin: ",highlightedHKL[i])
+            if(highlightedHKL[i][0] != minReflection.laue_index[0]
+            ||highlightedHKL[i][1] != minReflection.laue_index[1]
+            ||highlightedHKL[i][2] != minReflection.laue_index[2]){
+                newHighlightedHKL.push(highlightedHKL[i])
+                console.log("added: ",highlightedHKL[i])
+            }else{
+                console.log("removed: ", highlightedHKL[i])
+            }    
+        }
+        highlightedHKL = newHighlightedHKL
+        console.log("length: ", highlightedHKL.length)
         updateCanvas()
+        return
+    }
+
+    if(lock){
+        highlightedHKL.push(minReflection.laue_index)    
     }else{
         currentlySelectedHKL = minReflection.laue_index
-        updateCanvas()
     }
-   
-}
+    updateCanvas()
+} 
 
 function reflectionIsHighlighted(reflection){
     const hkl = reflection.laue_index;
@@ -284,26 +338,28 @@ function addInfoBox(reflection){
     const infoBox = infobox_container.lastElementChild
 
     //setting the screenposition of the infobox
-    const screenPosition = p2s(reflection.screen_position)
+    const screenPosition = physical2screen(reflection.screen_position)
     infoBox.style.left=(screenPosition[0]+5+"px");
     infoBox.style.top=(screenPosition[1]+5+"px");
     
     
     //setting the content of the infobox
     infoBox.children[0].innerHTML = "index: "+reflection.laue_index[0]+" "+reflection.laue_index[1]+" "+reflection.laue_index[2]
-    infoBox.children[1].innerHTML = "intensity: "+round(reflection.intensity,2)
-    infoBox.children[2].innerHTML = "count: "+reflection.count
+    infoBox.children[1].innerHTML = "2 	&Theta;:"+round(reflection.twoTheta, 2)+"°"
+    infoBox.children[2].innerHTML = "&lambda;:"+round(reflection.wavelength*10**10, 2)+"&#8491;"
+    infoBox.children[3].innerHTML = "intensity: "+round(reflection.intensity,2)
+    infoBox.children[4].innerHTML = "count: "+reflection.count
 }
 
 export function clickInBoundingBox(mouseX,mouseY){
 
     if(rectContains(laue_picture_ui.getBoundingClientRect(), mouseX,mouseY)){
-        console.log("laue ui intersects")
+        //console.log("laue ui intersects")
         return false;
     }
 
-    console.log("checking: ",mouseX,",",mouseY)
-    const physicalPos = s2p([mouseX,mouseY])
+    //console.log("checking: ",mouseX,",",mouseY)
+    const physicalPos = screen2Physical([mouseX,mouseY])
     if(abs(physicalPos[0]) > screen_width/2){
         return false
     }
