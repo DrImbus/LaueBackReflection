@@ -341,7 +341,8 @@ export function getG(h,k,l){
  */
 export function getMillerPlaneSpacing(h,k,l){
     const recLatticeVector = getPositionInReciprocalBasis(h,k,l);
-    return 1/sqrt(Vector3.dot(recLatticeVector,recLatticeVector));
+
+    return 1/sqrt(Vector3.dot(recLatticeVector,recLatticeVector)) * Math.PI*2;
 }
 
 /**
@@ -499,6 +500,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             const angle = 90-Vector3.getAngle(reflectedBeam, normalVector);
             const wavelength = 2*getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2])*sin(angle)
 
+
             twoThetas.push(angle)
             wavelengths.push(wavelength)
             /**
@@ -519,6 +521,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                     */
                     //twoThetas.push(angle)
                     //wavelengths.push(wavelength)
+
+
 
                     temp_intensity *= getSpectrum(wavelength)
                     temp_intensity*=wavelength**4/sin(angle)**2
@@ -732,7 +736,16 @@ export function getAbsoluteStructureFactor(h,k,l){
             l*basis_atoms_position[i][2]
         ), "rad")
     }
+
     result = sqrt(realPart**2+imPart**2)
+
+    /*
+    console.log(`${h},${k},${l}`)
+    console.log(`realPart: ${realPart}`)
+    console.log(`imPart: ${imPart}`)
+    console.log(`result: ${result}`)
+    */
+    
     return(result)
 }
 
