@@ -179,13 +179,12 @@ export function updateCanvas(){
 
     clearInfoBoxes();
 
-    console.log("updating canvas")
+
     for(let i = 0; i < reflections.length; i++){
         const color = `rgb(255,255,255,${reflections[i].intensity})`
         drawPoint(reflections[i].screen_position, color, size_function(reflections[i].intensity) ) //size  = 0.05
         
         if(reflectionIsHighlighted(reflections[i])){
-            console.log("highglighted reflectiobn: ", reflections[i])
             displayReflectionInfo(reflections[i])
         }
         counter++

@@ -83,6 +83,7 @@ var positions = [];
 var intensities = [];
 var wavelengths = [];
 var twoThetas = [];
+var structureFactors = [];
 
 var reflections = [];
 
@@ -252,21 +253,21 @@ export function getReciprocalA(rotated = false, unit="m"){
     const b_vector = getRealB(rotated,unit)
     const c_vector = getRealC(rotated,unit)
     const Volume = Vector3.dot(a_vector, Vector3.cross(b_vector,c_vector))
-    return Vector3.cross(b_vector, c_vector).mutliply(1/Volume)
+    return Vector3.cross(b_vector, c_vector).mutliply(1/Volume).mutliply(2*Math.PI)
 }
 export function getReciprocalB(rotated = false,unit="m"){
     const a_vector = getRealA(rotated,unit)
     const b_vector = getRealB(rotated,unit)
     const c_vector = getRealC(rotated,unit)
     const Volume = Vector3.dot(a_vector, Vector3.cross(b_vector,c_vector))
-    return Vector3.cross(c_vector, a_vector).mutliply(1/Volume)
+    return Vector3.cross(c_vector, a_vector).mutliply(1/Volume).mutliply(2*Math.PI)
 }
 export function getReciprocalC(rotated = false,unit="m"){
     const a_vector = getRealA(rotated,unit)
     const b_vector = getRealB(rotated,unit)
     const c_vector = getRealC(rotated,unit)
     const Volume = Vector3.dot(a_vector, Vector3.cross(b_vector,c_vector))
-    return Vector3.cross(a_vector, b_vector).mutliply(1/Volume)
+    return Vector3.cross(a_vector, b_vector).mutliply(1/Volume).mutliply(2*Math.PI)
 }
 
 /**
@@ -525,7 +526,11 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
 
                 }
                 if(consider_structure_factor){
-                    temp_intensity *= getAbsoluteStructureFactor(hkl[0],hkl[1],hkl[2])
+                    const struct = getAbsoluteStructureFactor(hkl[0],hkl[1],hkl[2])
+                    temp_intensity *= struct**2
+                    structureFactors.push(struct)
+                }else{
+                    structureFactors.push(-1)
                 }
                 intensities.push(temp_intensity)
                 if(temp_intensity > maxIntensity){
@@ -533,6 +538,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 }
             }else{
                 intensities.push(1);
+                structureFactors.push(-1)
             }
         } 
     }
@@ -560,7 +566,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                         screen_position:positions[counter],
                         intensity: intensities[counter],
                         twoTheta: twoThetas[counter],
-                        wavelength: wavelengths[counter]
+                        wavelength: wavelengths[counter],
+                        structureFactor: structureFactors[counter]
                     })
                 }
                 const index_to_remove = visible_hkl.indexOf(element_to_compare)
@@ -569,6 +576,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 intensities.splice(index_to_remove,1)
                 twoThetas.splice(index_to_remove, 1)
                 wavelengths.splice(index_to_remove,1)
+                structureFactors.splice(index_to_remove,1)
             }else{
                 counter++;
             }
@@ -589,14 +597,27 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         let numberOfOverlappingReflections = 0
         let avgAngle = 0
         let avgWavelength = 0
+        let minSF = 999999999999999999999
+        let maxSF = 0
+        let avgSF = 0
         for(let j = 0; j < temp_reflections[i].length; j++){
             sum_intensities+=temp_reflections[i][j].intensity
             numberOfOverlappingReflections++;
             avgAngle +=temp_reflections[i][j].twoTheta
             avgWavelength += temp_reflections[i][j].wavelength
+
+            const tempSF = temp_reflections[i][j].structureFactor
+            if (tempSF > maxSF){
+                maxSF = tempSF
+            }
+            if(tempSF < minSF){
+                minSF = tempSF
+            }
+            avgSF+=tempSF
         }
         avgAngle /= numberOfOverlappingReflections
         avgWavelength /= numberOfOverlappingReflections
+        avgSF/=numberOfOverlappingReflections
 
         reflections.push({
             laue_index: temp_reflections[i][0].laue_index,
@@ -604,7 +625,10 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             intensity: sum_intensities,
             count : numberOfOverlappingReflections,
             twoTheta: avgAngle,
-            wavelength: avgWavelength
+            wavelength: avgWavelength,
+            minSF: minSF,
+            maxSF: maxSF,
+            avgSF: avgSF
         })
     }
 
@@ -641,6 +665,22 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
     totalCount+=1
     //console.log("averageTime:", totalTime/totalCount)
 
+    /*
+    console.log("###########################")
+    console.log("REFLECTIONS:")
+    console.log("###########################")
+    for(let i = 0; i < reflections.length; i++){
+        console.log("__________________________")
+        console.log(`hkl: ${reflections[i].laue_index[0]},${reflections[i].laue_index[1]},${reflections[i].laue_index[2]}`)
+        console.log(`count: ${reflections[i].count}`)
+        console.log(`minSF: ${reflections[i].minSF}`)
+        console.log(`maxSF: ${reflections[i].maxSF}`)
+        console.log(`avgSF: ${reflections[i].avgSF}`)
+    }
+    */
+
+
+
 }
 
 export function getLaueReflections(){
@@ -676,17 +716,23 @@ function getFormFactor(G,atom_index){
 
 export function getAbsoluteStructureFactor(h,k,l){
     let result = 0
+    let realPart = 0
+    let imPart = 0
+
+    const G = getG(h,k,l)
     for(let i = 0; i < basis_atoms_position.length; i++){
-        for(let j = 0; j < basis_atoms_position.length; j++){
-            result+=getFormFactor(getG(h,k,l),i)*
-                    getFormFactor(getG(h,k,l),j)*
-                    cos(2*Math.PI*(
-                        h*(basis_atoms_position[i][0]-basis_atoms_position[j][0])+
-                        k*(basis_atoms_position[i][1]-basis_atoms_position[j][1])+
-                        l*(basis_atoms_position[i][2]-basis_atoms_position[j][2])
-                    ))
-        }
+        realPart += getFormFactor(G,i)*cos(2*Math.PI*(
+            h*basis_atoms_position[i][0]+
+            k*basis_atoms_position[i][1]+
+            l*basis_atoms_position[i][2]
+        ), "rad")
+        imPart -= getFormFactor(G,i)*sin(2*Math.PI*(
+            h*basis_atoms_position[i][0]+
+            k*basis_atoms_position[i][1]+
+            l*basis_atoms_position[i][2]
+        ), "rad")
     }
+    result = sqrt(realPart**2+imPart**2)
     return(result)
 }
 
