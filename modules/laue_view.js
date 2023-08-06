@@ -254,12 +254,23 @@ export function getReflectionAt(x,y, lock = false, remove = false){
     let minReflection = reflections[0];
     let minDistance = Math.sqrt((mousePos[0]-minReflection.screen_position[0])**2+(mousePos[1]-minReflection.screen_position[1])**2);
     for(let i = 1; i < reflections.length; i++){
-        const lauePos = reflections[i].screen_position;
-        const distance = Math.sqrt((mousePos[0]-lauePos[0])**2+(mousePos[1]-lauePos[1])**2);
-        if(distance < minDistance){
-            minReflection = reflections[i]
-            minDistance = distance
+        if(!remove){
+            const lauePos = reflections[i].screen_position;
+            const distance = Math.sqrt((mousePos[0]-lauePos[0])**2+(mousePos[1]-lauePos[1])**2);
+            if(distance < minDistance){
+                minReflection = reflections[i]
+                minDistance = distance
+            }
+        }else if(reflectionIsHighlighted(reflections[i])){
+            //when deleting reflections only check the highlighted ones
+            const lauePos = reflections[i].screen_position;
+            const distance = Math.sqrt((mousePos[0]-lauePos[0])**2+(mousePos[1]-lauePos[1])**2);
+            if(distance < minDistance){
+                minReflection = reflections[i]
+                minDistance = distance
+            }
         }
+        
     }
     if(remove){
         
@@ -272,21 +283,19 @@ export function getReflectionAt(x,y, lock = false, remove = false){
             }
 
         let newHighlightedHKL = []
-        console.log("removing: ",minReflection)
-        console.log("length: ", highlightedHKL.length)
         for(let i = 0; i < highlightedHKL.length; i++){
-            console.log("checkgin: ",highlightedHKL[i])
+
             if(highlightedHKL[i][0] != minReflection.laue_index[0]
             ||highlightedHKL[i][1] != minReflection.laue_index[1]
             ||highlightedHKL[i][2] != minReflection.laue_index[2]){
                 newHighlightedHKL.push(highlightedHKL[i])
-                console.log("added: ",highlightedHKL[i])
+
             }else{
-                console.log("removed: ", highlightedHKL[i])
+
             }    
         }
         highlightedHKL = newHighlightedHKL
-        console.log("length: ", highlightedHKL.length)
+        
         updateCanvas()
         return
     }
@@ -331,10 +340,14 @@ function clearInfoBoxes(){
 function addInfoBox(reflection){
     const placeholder = document.createElement("div");
     
+    
 
     infobox_container.append(placeholder)
     placeholder.outerHTML = infobox_prefab;
+       
     const infoBox = infobox_container.lastElementChild
+
+    
 
     //setting the screenposition of the infobox
     const screenPosition = physical2screen(reflection.screen_position)
@@ -348,6 +361,8 @@ function addInfoBox(reflection){
     infoBox.children[2].innerHTML = "&lambda;:"+round(reflection.wavelength*10**10, 2)+"&#8491;"
     infoBox.children[3].innerHTML = "intensity: "+round(reflection.intensity,2)
     infoBox.children[4].innerHTML = "count: "+reflection.count
+
+
 }
 
 export function clickInBoundingBox(mouseX,mouseY){
