@@ -85,7 +85,7 @@ const voltage_input = document.getElementById("voltage-input")
 const wavelength_input = document.getElementById("wavelength-input")
 
 //laue canvas
-const laue_canvas = document.getElementById("laue-picture-container")
+const laue_canvas = document.getElementById("laue-canvas-container")
 const laue_canvas_rect = laue_canvas.getBoundingClientRect()
 
 const investigate_button = document.getElementById("investigate-reflection")
@@ -840,9 +840,8 @@ document.addEventListener("mousedown", event => {
     }
 })
 
-document.getElementById("laue-picture-container").addEventListener("contextmenu", event => {
+laue_canvas.addEventListener("contextmenu", event => {
     event.preventDefault();
-    //console.log("test")
 })
 
 document.addEventListener("mouseup",event => {

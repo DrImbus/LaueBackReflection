@@ -12,7 +12,7 @@ var cutout_radius = 2
 var screen_width = 100//mm
 var screen_height = 100//mm
 
-const canvasContainer = document.getElementById('laue-picture-container')
+const canvasContainer = document.getElementById('laue-canvas-container')
 const canvas = canvasContainer.getElementsByTagName('canvas')[0];
 const context = canvas.getContext('2d');
 canvas.width = canvas.clientWidth;
@@ -172,25 +172,27 @@ function drawScale(){
     const reduced_length=(Math.floor(Math.sqrt(length)))**2
     const pixel_length_to_show = reduced_length*pixel_per_mm;
 
-    context.fillText(round(reduced_length,3)+"mm", 10, canvas.height-80);
+    const bottom_gap = 15;
+
+    context.fillText(round(reduced_length,3)+"mm", 10, canvas.height-bottom_gap);
 
     //draw line
-    context.moveTo(10,canvas.height-80+3);
-    context.lineTo(10+pixel_length_to_show, canvas.height-80+3);
+    context.moveTo(10,canvas.height-bottom_gap+3);
+    context.lineTo(10+pixel_length_to_show, canvas.height-bottom_gap+3);
     context.strokeStyle = "white";
     context.lineWidth = 2;
     context.stroke();
 
     //draw left entpiece 
-    context.moveTo(10,canvas.height-85+3);
-    context.lineTo(10, canvas.height-75+3);
+    context.moveTo(10,canvas.height-bottom_gap-5+3);
+    context.lineTo(10, canvas.height-bottom_gap+5+3);
     context.strokeStyle = "white";
     context.lineWidth = 2;
     context.stroke();
 
     //draw left entpiece 
-    context.moveTo(10+pixel_length_to_show,canvas.height-85+3);
-    context.lineTo(10+pixel_length_to_show, canvas.height-75+3);
+    context.moveTo(10+pixel_length_to_show,canvas.height-bottom_gap-5+3);
+    context.lineTo(10+pixel_length_to_show, canvas.height-bottom_gap+5+3);
     context.strokeStyle = "white";
     context.lineWidth = 2;
     context.stroke();
