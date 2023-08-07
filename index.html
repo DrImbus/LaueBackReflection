@@ -10,7 +10,7 @@
     <body>
         <div id="ui-container">
             <button class="section-headline">
-                Lattice Orientation
+                Lab Settings
             </button>
             <div class="input-section">
                 <div class="input-container">
@@ -56,11 +56,20 @@
                     <input type="number" value="5" id="cutout-radius">
                     <span class="input-unit">mm</span>
                 </div>
-                
+                <div class="input-container">
+                    <span class="input-name">U<sub>acc</sub></span>
+                    <input type="number" value="30" id="voltage-input">
+                    <span class="input-unit">kV</span>
+                </div>
+                <div class="input-container">
+                    <span class="input-name">&#955;<sub>min</sub></span>
+                    <input type="number" id="wavelength-input">
+                    <span class="input-unit">pm</span>
+                </div>
             </div>
         
             <button class="section-headline">
-                Lattice Constants
+                Crystal
             </button>
             <div class="input-section" id="lattice-constants">
                 
@@ -189,22 +198,7 @@
                 </div>
             </div>
 
-            <button class="section-headline">
-                X-Ray
-            </button>
-
-            <div class="input-section">
-                <div class="input-container">
-                    <span class="input-name">U<sub>acc</sub></span>
-                    <input type="number" value="30" id="voltage-input">
-                    <span class="input-unit">kV</span>
-                </div>
-                <div class="input-container">
-                    <span class="input-name">&#955;<sub>min</sub></span>
-                    <input type="number" id="wavelength-input">
-                    <span class="input-unit">pm</span>
-                </div>
-            </div>
+            
         </div>
 
 
