@@ -82,9 +82,12 @@ var visible_hkl = [];
 var positions = [];
 var intensities = [];
 var wavelengths = [];
+var d_hkl = [];
+var g = []; //length of the reciprocal lattice vector <==> deltaK
 var twoThetas = [];
 var structureFactors = [];
 
+var allReflections = [];
 var reflections = [];
 
 /**************************************************
@@ -340,9 +343,7 @@ export function getG(h,k,l){
  * calculate the spacing of miller-planes
  */
 export function getMillerPlaneSpacing(h,k,l){
-    const recLatticeVector = getPositionInReciprocalBasis(h,k,l);
-
-    return 1/sqrt(Vector3.dot(recLatticeVector,recLatticeVector)) * Math.PI*2;
+    return Math.PI*2/getG(h,k,l) ;
 }
 
 /**
@@ -392,8 +393,11 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
     positions = [];
     intensities = [];
     wavelengths = [];
+    d_hkl = [];
+    g = [];
     twoThetas = [];
     //eventually to be replaced by 
+    allReflections = [];
     reflections = [];
 
 
@@ -413,19 +417,6 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             temp_filtered_hkl.push(all_hkl[i])
         }
     }
-
-    /*
-    const halfScreenDiagonal = LAUE_VIEW.getHalfDiagonal()
-    let minAngle = atan2(cutout_radius, screen_distance)
-    let maxAngle = atan2(halfScreenDiagonal, screen_distance)
-    
-    for(let i = 0; i < temp_filtered_hkl.length; i++){
-        const hkl = temp_filtered_hkl[i]
-        const angle_G_xAxis = Vector3.getAngle(getPositionInReciprocalBasis(hkl[0],hkl[1],hkl[2], true), new Vector3(1,0,0))
-        if(angle_G_xAxis > minAngle/2 && angle_G_xAxis < maxAngle/2){
-            filtered_hkl.push(hkl)
-        }
-    }*/
 
     /**
      * temp_filtered_hkl is further refined by 
@@ -499,10 +490,13 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
              */
             const angle = 90-Vector3.getAngle(reflectedBeam, normalVector);
             const wavelength = 2*getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2])*sin(angle)
-
+            const d = getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2]);
+            const G = getG(hkl[0],hkl[1],hkl[2])
 
             twoThetas.push(angle)
             wavelengths.push(wavelength)
+            d_hkl.push(d)
+            g.push(G)
             /**
              * calculate its intensity determined by the spectrum and the structure_factor
              * 
@@ -571,7 +565,9 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                         intensity: intensities[counter],
                         twoTheta: twoThetas[counter],
                         wavelength: wavelengths[counter],
-                        structureFactor: structureFactors[counter]
+                        structureFactor: structureFactors[counter],
+                        G: g[counter],
+                        d_hkl: d_hkl[counter]
                     })
                 }
                 const index_to_remove = visible_hkl.indexOf(element_to_compare)
@@ -581,6 +577,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 twoThetas.splice(index_to_remove, 1)
                 wavelengths.splice(index_to_remove,1)
                 structureFactors.splice(index_to_remove,1)
+                g.splice(index_to_remove,1)
+                d_hkl.splice(index_to_remove,1)
             }else{
                 counter++;
             }
@@ -592,6 +590,25 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         
         //safetycounter++;
     }
+    allReflections=[...temp_reflections]
+
+    let maxIntensityOfAllReflections = 0
+    for(let i = 0; i < allReflections.length; i++){
+        for(let j = 0; j < allReflections[i].length; j++){
+            if(allReflections[i][j].intensity > maxIntensityOfAllReflections){
+                maxIntensityOfAllReflections = allReflections[i][j].intensity
+            }
+        }
+    }
+    if(maxIntensityOfAllReflections > 0){
+        for(let i = 0; i < allReflections.length; i++){
+            for(let j = 0; j < allReflections[i].length; j++){
+                allReflections[i][j].intensity = allReflections[i][j].intensity/maxIntensityOfAllReflections
+            }
+        }
+    }
+    //console.log(allReflections)
+
     reflections = []
     for(let i = 0; i < temp_reflections.length; i++){
         if(temp_reflections[i].length == 0){
@@ -604,12 +621,15 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         let minSF = 999999999999999999999
         let maxSF = 0
         let avgSF = 0
+        let avgG = 0
+        let avgD = 0
         for(let j = 0; j < temp_reflections[i].length; j++){
             sum_intensities+=temp_reflections[i][j].intensity
             numberOfOverlappingReflections++;
             avgAngle +=temp_reflections[i][j].twoTheta
             avgWavelength += temp_reflections[i][j].wavelength
-
+            avgG += temp_reflections[i][j].G
+            avgD += temp_reflections[i][j].d_hkl
             const tempSF = temp_reflections[i][j].structureFactor
             if (tempSF > maxSF){
                 maxSF = tempSF
@@ -622,6 +642,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         avgAngle /= numberOfOverlappingReflections
         avgWavelength /= numberOfOverlappingReflections
         avgSF/=numberOfOverlappingReflections
+        avgG/=numberOfOverlappingReflections
+        avgD/=numberOfOverlappingReflections
 
         reflections.push({
             laue_index: temp_reflections[i][0].laue_index,
@@ -632,7 +654,9 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             wavelength: avgWavelength,
             minSF: minSF,
             maxSF: maxSF,
-            avgSF: avgSF
+            avgSF: avgSF,
+            avgG: avgG,
+            avgD: avgD
         })
     }
 
@@ -651,7 +675,6 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 maxIntensity = reflections[i].intensity
             }
         }
-
         if(maxIntensity > 0){
             for(let i = 0; i < reflections.length; i++){
                 reflections[i].intensity = reflections[i].intensity/maxIntensity
@@ -689,6 +712,48 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
 
 export function getLaueReflections(){
     return reflections//[positions, intensities];
+}
+
+/**
+ * 
+ * @returns all laue reflections (110 AND 220 instead of just 110 with summed intensities)
+ */
+export function getReflectionCSV(){
+    let result = "direction;hkl;x[mm];y[mm];2Theta[degrees];wavelength[Angstrom];d_hkl[Angstrom];G[1/Angstrom];structure factor;intensity;\n"
+    for(let i = 0; i< allReflections.length; i++){
+        
+        for(let j = 0; j < allReflections[i].length; j++){
+            console.log("y: ",allReflections[i][j].screen_position[0])
+            let row = ""
+            const direction = "("+allReflections[i][0].laue_index[0]+","+allReflections[i][0].laue_index[1]+","+allReflections[i][0].laue_index[2]+")"
+            const hkl = "("+allReflections[i][j].laue_index[0]+","+allReflections[i][j].laue_index[1]+","+allReflections[i][j].laue_index[2]+")"
+            const x = round(allReflections[i][j].screen_position[0],3)
+            const y = round(allReflections[i][j].screen_position[1],3)
+            const angle = round(allReflections[i][j].twoTheta,3)
+            const wavelength = round(allReflections[i][j].wavelength*10**10,3)
+            const d_hkl = round(allReflections[i][j].d_hkl*10**10,3)
+            const G = round(allReflections[i][j].G*10**(-10),3)
+            const structureFactor = round(allReflections[i][j].structureFactor,3)
+            const intensity = allReflections[i][j].intensity
+            
+
+            row+= (direction+";")
+            row+= (hkl+";")
+            row+= (String(x).replace(".",",")+";")
+            row+= (String(y).replace(".",",")+";")
+            row+= (String(angle).replace(".",",")+";")
+            row+= (String(wavelength).replace(".",",")+";")
+            row+= (String(d_hkl).replace(".",",")+";")
+            row+= (String(G).replace(".",",")+";")
+            row+= (String(structureFactor).replace(".",",")+";")
+            row+= (String(intensity).replace(".",",")+";")
+
+            result+= row+"\n"
+        }
+
+    }
+
+    return result
 }
 
 export function kramer(lambda,lambdaMin){

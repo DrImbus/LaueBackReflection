@@ -91,6 +91,7 @@ const laue_canvas_rect = laue_canvas.getBoundingClientRect()
 const investigate_button = document.getElementById("investigate-reflection")
 const rotate_button = document.getElementById("rotate-reflection")
 const move_button = document.getElementById("move-reflection")
+const download_button = document.getElementById("download-button")
 
 /**
  * voltage_input and wavelength_input ultimately controll the same thing -> the spectrum of the x-rays calculated in crystal.js
@@ -702,6 +703,61 @@ move_button.addEventListener("click", event => {
 
         laue_mode = "move"
     }
+})
+
+function save_csv(content, filename){
+    // Create element with <a> tag
+    const link = document.createElement("a");
+
+    // Create a blog object with the file content which you want to add to the file
+    const file = new Blob([content], { type: "text/plain" });
+
+    // Add file content in the object URL
+    link.href = URL.createObjectURL(file);
+
+    // Add file name
+    link.download = filename;
+
+    // Add click event to <a> tag to save file.
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+function save_img(content, filename){
+    let downloadLink = document.createElement('a');
+    downloadLink.setAttribute('download', filename);
+    //let canvas = document.getElementById('myCanvas');
+    //let dataURL = canvas.toDataURL('image/png');
+    let dataURL = content
+    let url = dataURL.replace(/^data:image\/png/,'data:application/octet-stream');
+    downloadLink.setAttribute('href', url);
+    downloadLink.click();
+    URL.revokeObjectURL(downloadLink.href)
+}
+
+download_button.addEventListener("click", event => {
+    const date = new Date();
+    let day = date.getDate();
+    if(day < 10){
+        day = "0"+String(day)
+    }
+    else{
+        day = String(day)
+    }
+    let month = date.getMonth()+1;
+    if(month < 10){
+        month = "0"+String(month)
+    }
+    else{
+        month = String(month)
+    }
+    let year = date.getFullYear();
+    // This arrangement can be altered based on how we want the date's format to appear.
+    let currentDate = `${year}_${month}_${day}`;
+
+    save_csv(CRYSTAL.getReflectionCSV(), currentDate+"_test.csv")
+    save_img(LAUE_VIEW.getImage(), currentDate+"_laue.png")
+    
 })
 
 /**************************************************

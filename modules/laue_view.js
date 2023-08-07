@@ -1,4 +1,4 @@
-import { rectContains, clamp, atan2, round, abs } from './utility.js';
+import { rectContains, clamp, atan2, round, abs, log10 } from './utility.js';
 import * as CRYSTAL from './crystal.js'
 
 import { Vector3 } from './linear_algebra.js';
@@ -112,20 +112,24 @@ export function getHalfDiagonal(){
 
 
 function drawPoint(pos,color='white', size=0.05){
-    context.beginPath();
+    
     const screen_pos = physical2screen(pos)
-    context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(size), 0, 2 * Math.PI, false);
-    context.fillStyle = color;
-    context.fill();
     context.lineWidth = 0;
+    context.strokeStyle = color;
+    context.fillStyle = color;
+    context.beginPath();
+    context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(size), 0, 2 * Math.PI, false);
+    context.fill();
+    
 }
 
 function drawCircle(pos, color="red",radius,lineWidth){
     context.beginPath();
     const screen_pos = physical2screen(pos)
-    context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(radius), 0, 2 * Math.PI, false);
-    context.strokeStyle = color;
     context.lineWidth = lineWidth;
+    context.strokeStyle = color;
+    context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(radius), 0, 2 * Math.PI, false);
+    
     context.stroke();
     
 }
@@ -158,6 +162,41 @@ function drawLine(start_pos, end_pos, color='black', size = 1){
     context.stroke();
 }
 
+function drawScale(){
+    //draw text
+    context.beginPath();
+    context.fillStyle = "white"
+    context.font = "24px serif";
+
+    const length = 200/pixel_per_mm
+    const reduced_length=(Math.floor(Math.sqrt(length)))**2
+    const pixel_length_to_show = reduced_length*pixel_per_mm;
+
+    context.fillText(round(reduced_length,3)+"mm", 10, canvas.height-80);
+
+    //draw line
+    context.moveTo(10,canvas.height-80+3);
+    context.lineTo(10+pixel_length_to_show, canvas.height-80+3);
+    context.strokeStyle = "white";
+    context.lineWidth = 2;
+    context.stroke();
+
+    //draw left entpiece 
+    context.moveTo(10,canvas.height-85+3);
+    context.lineTo(10, canvas.height-75+3);
+    context.strokeStyle = "white";
+    context.lineWidth = 2;
+    context.stroke();
+
+    //draw left entpiece 
+    context.moveTo(10+pixel_length_to_show,canvas.height-85+3);
+    context.lineTo(10+pixel_length_to_show, canvas.height-75+3);
+    context.strokeStyle = "white";
+    context.lineWidth = 2;
+    context.stroke();
+}
+
+
 export function updateCanvas(){   
   
     const reflections = CRYSTAL.getLaueReflections();
@@ -189,6 +228,10 @@ export function updateCanvas(){
         }
         counter++
     }
+
+    drawScale();
+ 
+      
 }
 
 /****************************************
@@ -383,3 +426,8 @@ export function clickInBoundingBox(mouseX,mouseY){
     return true
 }
 
+
+
+export function getImage(){
+    return canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+}

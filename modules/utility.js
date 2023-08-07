@@ -88,6 +88,10 @@ export function sign(x){
     return -1
 }
 
+export function log10(x){
+    return Math.log10(x)
+}
+
 export function removeItemAll(arr, value) {
     var i = 0;
     while (i < arr.length) {
