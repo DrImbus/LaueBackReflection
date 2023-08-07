@@ -261,7 +261,8 @@ body{
 
 #laue-canvas-container canvas{
     width: 100%;
-    height:100%
+    height:100%;
+    background-color: rgb(10,10,10);
 }
 
 
@@ -281,6 +282,7 @@ body{
     cursor:grabbing;
 }
 
+
 /*********************************
 
     laue picture ui 
@@ -294,10 +296,15 @@ body{
     flex-direction: row;
 }
 
-.laue-picture-ui-button{
+#laue-picture-ui > *{
     padding: 5px;
     height: 25px;
+}
+
+.laue-picture-ui-button{
     background-color: grey;
+    vertical-align: middle;
+    cursor: pointer;
 }
 
 .laue-picture-ui-button:hover{
@@ -313,19 +320,18 @@ body{
     height: 100%;
 }
 
-
-#laue-picture-container > canvas{
-    width: 100% !important;
-    height: 100vh;
-    background-color: rgb(10,10,10);
-}
-
-.seperator{
+#laue-picture-ui > .seperator{
+    padding: 0px;
     width:1px;
     height:100%;
     background-color: black;
     margin: 0 5px 0 5px;
 }
+
+
+
+
+
 
 
 /*********************************

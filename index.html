@@ -141,15 +141,18 @@
                 Display
             </button>
             <div class="input-section">
+                <!--
                 <div class="input-container">
                     <span class="max-hkl-name" >max HKL</span>
                     <input type="number" value="5" min = "1" max = "100" id="max-hkl-input">
                 </div>
+
                 <div class="input-container">
                     <span></span>
-                    <button id="100-hkl" style="width:81px; max-width:100px; margin-left:45px">60 HKL</button>
+                    <button id="100-hkl" style="width:81px; max-width:100px; margin-left:45px">Full</button>
                 </div>
-                
+                -->
+
                 <div class="input-container checkbox-container">
                     <span class="input-name">consider spectrum: </span>
                     <input type="checkbox" id="consider-spectrum" checked>
@@ -222,13 +225,24 @@
                     <div class="laue-picture-ui-button" id="move-reflection">
                         <img src="./images/move.png" alt="translate">
                     </div>
-                    <div class="laue-picture-ui-button" id="download-button">
-                        <img src="./images/move.png" alt="download">
-                    </div>
-                    <div class="seperator">
-
-                    </div>
                     
+                    <div class="seperator"></div>
+                    
+                    <div class="laue-picture-ui-input">
+                        <span>maxHKL</span>
+                        <input style="width:50px" type="number" value="5" min = "1" max = "100" id="max-hkl-input">
+                    </div>
+
+                    <div class="laue-picture-ui-button" id="100-hkl">
+                        <span>FULL</span>
+                    </div>                  
+                    
+                    <div class="seperator"></div>
+
+                    <div class="laue-picture-ui-button" id="download-button">
+                        <img src="./images/download_icon.png" alt="download">
+                    </div>
+
                 </div>
                 <div id="laue-canvas-container" class="rotate">
                     <canvas>

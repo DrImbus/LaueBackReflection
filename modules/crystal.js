@@ -11,6 +11,7 @@ import { sqrt, cos, sin , getHKL, round, atan2, abs, wavelength_to_voltage} from
 
 import atom_properties from "../atom_properties.json" assert { type: "json" };
 import * as LAUE_VIEW from "./laue_view.js";
+import * as MAIN from "../main.js";
 
 
 /**************************************************
@@ -451,6 +452,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
     //keep track of the maxIntensity so we can normalize it later
     var maxIntensity = 0;
     for(let i = 0; i < filtered_hkl.length; i++){
+    
 
         const hkl = filtered_hkl[i]
 
@@ -538,7 +540,8 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 intensities.push(1);
                 structureFactors.push(-1)
             }
-        } 
+        }
+        
     }
     //console.log("number of spots: ", positions.length)
 

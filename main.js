@@ -93,6 +93,7 @@ const rotate_button = document.getElementById("rotate-reflection")
 const move_button = document.getElementById("move-reflection")
 const download_button = document.getElementById("download-button")
 
+
 /**
  * voltage_input and wavelength_input ultimately controll the same thing -> the spectrum of the x-rays calculated in crystal.js
  * since voltage determines the min_wavelength we set the default value of the voltage_input (30kV) 
@@ -783,7 +784,6 @@ export function basisChanged(basis_positions, types){
     BASIS_VIEW.updateBasisAtoms();
 
 }
-
 
 /**************************************************
 
