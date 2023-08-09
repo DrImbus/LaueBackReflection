@@ -7,7 +7,7 @@ in the lab-system (takes rotation into account)
 */
 
 import { Vector3, Plane, Line, rotateEulerAngles} from "./linear_algebra.js";
-import { sqrt, cos, sin , getHKL, round, atan2, abs, wavelength_to_voltage} from "./utility.js";
+import { sqrt, cos, sin , getHKL, round, atan2, abs, wavelength_to_voltage, exp} from "./utility.js";
 
 import atom_properties from "../atom_properties.json" assert { type: "json" };
 import * as LAUE_VIEW from "./laue_view.js";
@@ -372,7 +372,14 @@ function sigmoid(x,a){
 }
 
 function contrast(x){
-    return x**(1/4)
+    
+    //return (1**2-(x-1)**2)**(1/10)
+    const y =  x**(1/12)
+    if(y < 0.55){
+        return y*0.5
+    }
+    return y
+    //return x**(1/4)
     //return sigmoid(x,1)/sigmoid(1,1)
 }
 
@@ -685,11 +692,14 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             }
         }
     }
+
     if(normalize_brightest && maxIntensity > 0){
         for(let i = 0; i < intensities.length; i++){3
             intensities[i] /= maxIntensity
         }
     }
+
+
     //console.log("time: ",Date.now()-startTime)
     totalTime+= Date.now()-startTime
     totalCount+=1

@@ -18,6 +18,8 @@ body{
             STYLING THE UI CONTAINER
 
 **************************************************/
+
+
 #ui-container{
 
     /*the ui container on the left*/
@@ -27,6 +29,11 @@ body{
     padding: 20px 10px 0px 10px;
 
     overflow-y: scroll;
+}
+
+#ui-container:has(.input-container>input:hover){
+    overflow: hidden;
+    padding-right: 27px
 }
 
 #ui-container>div:last-child{

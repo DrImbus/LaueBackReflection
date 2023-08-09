@@ -8,6 +8,7 @@ import * as CRYSTAl from "./crystal.js"
 
 **************************************************/
 
+
 const basis_input = document.getElementById("basis-input");
 const basis_variable_input_container = basis_input.firstElementChild;
 basis_variable_input_container.style.maxHeight = "0px";
