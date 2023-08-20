@@ -166,3 +166,7 @@ export function wavelength_to_voltage(lambda){
     //lambda in m
     return (PLANCK * C / (ELEMENTARY_CHARGE * lambda))
 }
+
+export function distancePythagoras(a,b){
+    return sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
+}

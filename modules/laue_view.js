@@ -72,8 +72,6 @@ function physical2screen(position){
     return[screenX, screenY]
 
     //return [position[0]*x_unit_2_pixel+mid_x, position[1]*(-y_unit_2_pixel)+mid_y]
-
-
 }
 
 
@@ -114,13 +112,14 @@ export function getHalfDiagonal(){
 function drawPoint(pos,color='white', size=0.05){
     
     const screen_pos = physical2screen(pos)
+    //context.filter = "blur(2px)"
     context.lineWidth = 0;
     context.strokeStyle = color;
     context.fillStyle = color;
     context.beginPath();
     context.arc(screen_pos[0], screen_pos[1], physicalLength2ScreenLenth(size), 0, 2 * Math.PI, false);
     context.fill();
-    
+    //context.filter = "none"
 }
 
 function drawCircle(pos, color="red",radius,lineWidth){

@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Laue Pattern Prediction</title>
         <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="contrast_function.css">
     </head>
     <body>
         <div id="ui-container">
@@ -69,7 +70,7 @@
             </div>
         
             <button class="section-headline">
-                Crystal
+                Lattice Paramters
             </button>
             <div class="input-section" id="lattice-constants">
                 
@@ -116,7 +117,7 @@
             </div>
 
             <button class="section-headline">
-                Basis
+                Crystal Basis
             </button>
             <div class="input-section variable-input" id="basis-input">
                 <div class="variable-container">
@@ -147,7 +148,7 @@
             </div>
             -->
             <button class="section-headline">
-                Display
+                Display Settings
             </button>
             <div class="input-section">
                 <!--
@@ -180,26 +181,35 @@
                     <input type="checkbox" id="calculate-intensity" checked>
                 </div>
                 s-->
-                <div class="input-container checkbox-container">
+                <div class="input-container checkbox-container" style="display:none">
                     <span class="input-name">display atoms: </span>
                     <input type="checkbox" id="display-atoms" checked>
                 </div>
-                <div class="input-container checkbox-container">
+                <div class="input-container checkbox-container" style="display:none">
                     <span class="input-name">display bounding box: </span>
                     <input type="checkbox" id="display-bounding-box" checked>
                 </div>
-                <div class="input-container checkbox-container">
+                <div class="input-container checkbox-container" style="display:none">
                     <span class="input-name">display real basis: </span>
                     <input type="checkbox" id="display-real-basis" checked>
                 </div>
-                <div class="input-container checkbox-container">
+                <div class="input-container checkbox-container" style="display:none">
                     <span class="input-name">display reciprocal basis: </span>
                     <input type="checkbox" id="display-reciprocal-basis" checked>
                 </div>
             </div>
-
-            
+            <button class="section-headline">
+                Contrast Function
+            </button>
+            <div class="input-section" >
+                <div id="contrast-function">
+                    <canvas>
+                        
+                    </canvas>
+                </div>
+            </div>
         </div>
+
 
 
         <div id="visual-container">
@@ -256,6 +266,7 @@
             </div>
         </div>
 
+
         <script type="module" src="./modules/handle_collapsable_ui.js"></script>
         <script type="module" src="./modules/handle_variable_input.js"></script>
 
@@ -264,6 +275,7 @@
         <script type="module" src="./modules/crystal.js"></script>
 
 
+        <script type="module" src="./modules/contrast_function.js"></script>
         <script type="module" src="./modules/basis_view.js"></script>
         <script type="module" src="./modules/lab_view.js"></script>
         <script type="module" src="./modules/laue_view.js"></script>

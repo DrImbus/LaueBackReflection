@@ -12,6 +12,7 @@ import { sqrt, cos, sin , getHKL, round, atan2, abs, wavelength_to_voltage, exp}
 import atom_properties from "../atom_properties.json" assert { type: "json" };
 import * as LAUE_VIEW from "./laue_view.js";
 import * as MAIN from "../main.js";
+import { contrast } from "./contrast_function.js";
 
 
 /**************************************************
@@ -370,8 +371,9 @@ export function getAtomColors(){
 function sigmoid(x,a){
     return (1/(1+Math.exp(-x*a)) - 0.5) * 2
 }
-
+/*
 function contrast(x){
+    //return x
     //return x**(1/4)
     //return (1**2-(x-1)**2)**(1/10)
     const y =  x**(1/12)
@@ -382,7 +384,7 @@ function contrast(x){
     //return x**(1/4)
     //return sigmoid(x,1)/sigmoid(1,1)
 }
-
+*/
 /**
  * central function of the whole program!
  * takes maxHKLParam as input (if nothing is set it )
@@ -502,7 +504,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             const d = getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2]);
             const G = getG(hkl[0],hkl[1],hkl[2])
 
-            twoThetas.push(angle)
+            twoThetas.push(angle*2)
             wavelengths.push(wavelength)
             d_hkl.push(d)
             g.push(G)
@@ -514,17 +516,6 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 //the default intensity of every point is
                 let temp_intensity = 1
                 if(consider_spectrum){
-
-                    /**
-                     * the angle between the incoming ray and the plane 
-                    */
-                   /*
-                    const angle = 90-Vector3.getAngle(reflectedBeam, normalVector);
-                    const wavelength = 2*getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2])*sin(angle)
-                    */
-                    //twoThetas.push(angle)
-                    //wavelengths.push(wavelength)
-
 
 
                     temp_intensity *= getSpectrum(wavelength)
@@ -600,6 +591,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         
         //safetycounter++;
     }
+
     allReflections=[...temp_reflections]
 
     let maxIntensityOfAllReflections = 0
@@ -675,7 +667,6 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
     intensities = intensitiesBackup
     positions = positionsBackup
 
-    const empty_radius = 2
 
     //new logic
     if(normalize_brightest){
@@ -749,17 +740,17 @@ export function getReflectionCSV(){
             const structureFactor = round(allReflections[i][j].structureFactor,3)
             const intensity = allReflections[i][j].intensity
             
-
-            row+= (direction+";")
-            row+= (hkl+";")
-            row+= (String(x).replace(".",",")+";")
-            row+= (String(y).replace(".",",")+";")
-            row+= (String(angle).replace(".",",")+";")
-            row+= (String(wavelength).replace(".",",")+";")
-            row+= (String(d_hkl).replace(".",",")+";")
-            row+= (String(G).replace(".",",")+";")
-            row+= (String(structureFactor).replace(".",",")+";")
-            row+= (String(intensity).replace(".",",")+";")
+            const seperation_character = ";"
+            row+= (direction+seperation_character)
+            row+= (hkl+seperation_character)
+            row+= (String(x)+seperation_character)
+            row+= (String(y)+seperation_character)
+            row+= (String(angle)+seperation_character)
+            row+= (String(wavelength)+seperation_character)
+            row+= (String(d_hkl)+seperation_character)
+            row+= (String(G)+seperation_character)
+            row+= (String(structureFactor)+seperation_character)
+            row+= (String(intensity)+seperation_character)
 
             result+= row+"\n"
         }

@@ -111,6 +111,11 @@ wavelength_input.value = wavelength_input.value = voltage_to_wavelength(Number(v
 let updateLaue = true
 let recalculateReflections = true
 
+export function updateAll(){
+    updateLaue = true;
+    recalculateReflections = true
+}
+
 /**************************************************
 
         INITIALISE THE VARIABLES IN THE SCRIPTS
