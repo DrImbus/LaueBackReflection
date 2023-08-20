@@ -372,7 +372,7 @@ function sigmoid(x,a){
 }
 
 function contrast(x){
-    
+    //return x**(1/4)
     //return (1**2-(x-1)**2)**(1/10)
     const y =  x**(1/12)
     if(y < 0.55){
