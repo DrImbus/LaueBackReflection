@@ -100,7 +100,7 @@ document.getElementById("basis-add-button").addEventListener("click",event => {
 
 //fcc
 addBasisInputElement(0,0,0)
-addBasisInputElement(0.5,0,0)
+//addBasisInputElement(0.5,0,0)
 
 /*addBasisInputElement(1,0,0)
 addBasisInputElement(0,1,0)

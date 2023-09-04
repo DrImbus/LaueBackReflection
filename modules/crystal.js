@@ -288,13 +288,41 @@ export function validAngles(alpha,beta,gamma){
  * the different atom_properties are read from atom_properties.json
  */
 export function setBasisAtoms(positions, types_of_atoms){
-    basis_atoms_position = positions;
-    atom_types = types_of_atoms;   
+    console.log("_________setbasis_____________")
+    basis_atoms_position =  [] //positions;
+    //atom_types = types_of_atoms;   
+    atom_types = []
     form_factor_parameters = []
     atom_radius = []
     atom_colors = []
-    atom_types.forEach(type => {
+    console.log(types_of_atoms)
+    for(let i = 0; i < positions.length; i++){
+        const type = types_of_atoms[i]
+        const pos = positions[i]
+        if(type in atom_properties){
+            console.log(`${type} added`)
+            basis_atoms_position.push(pos)
+            atom_types.push(type)
+            atom_radius.push(atom_properties[type].radius/100) //atom radii in angstrom
+            atom_colors.push(atom_properties[type].color)
+            form_factor_parameters.push({
+                                a1:atom_properties[type].a1,
+                                b1:atom_properties[type].b1,
+                                a2:atom_properties[type].a2,
+                                b2:atom_properties[type].b2,
+                                a3:atom_properties[type].a3,
+                                b3:atom_properties[type].b3,
+                                a4:atom_properties[type].a4,
+                                b4:atom_properties[type].b4,
+                                c:atom_properties[type].c
+                            })
+        }
+    }
+    /*types_of_atoms.forEach(type => {
+        console.log(`checking ${type}`)
         if((type in atom_properties)){
+            console.log(`${type} added`)
+            atom_types.push(type)
             atom_radius.push(atom_properties[type].radius/100) //atom radii in angstrom
             atom_colors.push(atom_properties[type].color)
             form_factor_parameters.push({
@@ -312,7 +340,8 @@ export function setBasisAtoms(positions, types_of_atoms){
         //atomic_form_factors.push(atom_properties[type].form_factor)
         //atom_sizes.push(atom_properties[type].radius/100) //atom radii in angstrom
         //atom_colors.push(atom_properties[type].color)
-    }) 
+    }) */
+    console.log(form_factor_parameters)
 }
 
 /**
@@ -328,7 +357,7 @@ function getPositionInRealBasis(x,y,z, rotated_crystal = false, unit="m"){
 /**
  * calculate position in the reciprocal basis
  */
-function getPositionInReciprocalBasis(x,y,z, rotated_crystal = false, unit="m"){
+export function getPositionInReciprocalBasis(x,y,z, rotated_crystal = false, unit="m"){
     const result = getReciprocalA(rotated_crystal, unit).mutliply(x);
     result.add(getReciprocalB(rotated_crystal, unit).mutliply(y), true);
     result.add(getReciprocalC(rotated_crystal, unit).mutliply(z), true);
@@ -457,6 +486,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
         filtered_hkl.push(hkl)
     }
 
+    
 
     //keep track of the maxIntensity so we can normalize it later
     var maxIntensity = 0;
@@ -487,6 +517,7 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             continue
         }
 
+
         //if the beam doesnt hit the plate it is undefined
         //=> only proceed with this reflec when it hit the screen 
         if(!(reflect === undefined)){
@@ -499,6 +530,9 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
              * So to enhance performance this used to be done only if consider_spectrum or consider_structure_factor are true
              * But we want to display them in the infoboxes so we have to calculate the angle and wavelength here
              */
+
+            const printIndex = 5
+
             const angle = 90-Vector3.getAngle(reflectedBeam, normalVector);
             const wavelength = 2*getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2])*sin(angle)
             const d = getMillerPlaneSpacing(hkl[0],hkl[1],hkl[2]);
@@ -517,10 +551,13 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
                 let temp_intensity = 1
                 if(consider_spectrum){
 
-
+                    
                     temp_intensity *= getSpectrum(wavelength)
+                    
                     temp_intensity*=wavelength**4/sin(angle)**2
-                    temp_intensity*=(1+cos(2*angle)^2)/2
+                   
+                    temp_intensity*=(1+cos(2*angle)**2)/2
+
 
                 }
                 if(consider_structure_factor){
@@ -727,7 +764,7 @@ export function getReflectionCSV(){
     for(let i = 0; i< allReflections.length; i++){
         
         for(let j = 0; j < allReflections[i].length; j++){
-            console.log("y: ",allReflections[i][j].screen_position[0])
+            //console.log("y: ",allReflections[i][j].screen_position[0])
             let row = ""
             const direction = "("+allReflections[i][0].laue_index[0]+","+allReflections[i][0].laue_index[1]+","+allReflections[i][0].laue_index[2]+")"
             const hkl = "("+allReflections[i][j].laue_index[0]+","+allReflections[i][j].laue_index[1]+","+allReflections[i][j].laue_index[2]+")"
@@ -772,16 +809,16 @@ export function getSpectrum(lambda){
     }
     return 0
 }
-
+2
 function getFormFactor(G,atom_index){
     //return 1
-    G*=10**(-10)
     const parameters = form_factor_parameters[atom_index]
     let result = parameters.c
     result+=parameters.a1*Math.exp(-parameters.b1*(G/(4*Math.PI))**2)
     result+=parameters.a2*Math.exp(-parameters.b2*(G/(4*Math.PI))**2)
     result+=parameters.a3*Math.exp(-parameters.b3*(G/(4*Math.PI))**2)
     result+=parameters.a4*Math.exp(-parameters.b4*(G/(4*Math.PI))**2)
+
 
 
     return result
@@ -792,7 +829,7 @@ export function getAbsoluteStructureFactor(h,k,l){
     let realPart = 0
     let imPart = 0
 
-    const G = getG(h,k,l)
+    const G = getG(h,k,l)*10**(-10)
     for(let i = 0; i < basis_atoms_position.length; i++){
         realPart += getFormFactor(G,i)*cos(2*Math.PI*(
             h*basis_atoms_position[i][0]+
@@ -808,12 +845,7 @@ export function getAbsoluteStructureFactor(h,k,l){
 
     result = sqrt(realPart**2+imPart**2)
 
-    /*
-    console.log(`${h},${k},${l}`)
-    console.log(`realPart: ${realPart}`)
-    console.log(`imPart: ${imPart}`)
-    console.log(`result: ${result}`)
-    */
+
     
     return(result)
 }

@@ -89,7 +89,7 @@ export class Vector3{
         if(t <= 0){
             return 
         }
-        return [t*this.y, t* this.z]
+        return [-t*this.y, t* this.z]
     }
 
     print(){
@@ -268,7 +268,8 @@ export class Plane{
         if(line.direction.mutliply(t).getLength()*sign(t) < min || line.direction.mutliply(t).getLength() > max){
             return(undefined)
         }
-        return line.getPointAt(t);
+        let result = line.getPointAt(t);
+        result
     }
 }
 
@@ -280,9 +281,6 @@ export class Plane{
  * R_y(y')*R_x(x')*R_z(z') = R_z(deltaZ)*R_y(y)*R_x(x)*R_z(z)
  */
 export function rotateEulerAngles(x_start, y_start, z_start, deltaX, deltaY, deltaZ){
-
-
-
     //rotation matrix of the original 3 euler angles
     const originalRotation = Matrix3x3.Y_Rotation(y_start).mutliply(Matrix3x3.X_Rotation(x_start)).mutliply(Matrix3x3.Z_Rotation(z_start))
     //rotation matrix after appliying deltaZ, deltaY, deltaX in that order

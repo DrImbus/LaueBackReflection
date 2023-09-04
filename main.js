@@ -888,7 +888,7 @@ document.addEventListener("mousemove",event => {
                 let oldZ = z_rotation_input.value;
                 
     
-                const newEulerAngles = rotateEulerAngles(oldX,oldY,oldZ,0,deltaY,deltaX);//here deltaX/-Y refers to the mouse-movement not the angle difference
+                const newEulerAngles = rotateEulerAngles(oldX,oldY,oldZ,0,deltaY,-deltaX);//here deltaX/-Y refers to the mouse-movement not the angle difference
     
                 const x = newEulerAngles[0]
                 const y = newEulerAngles[1]
@@ -926,7 +926,7 @@ document.addEventListener("mousemove",event => {
                 let oldY = y_rotation_input.value;
                 let oldZ = z_rotation_input.value;
 
-                const newEulerAngles = rotateEulerAngles(oldX,oldY,oldZ,-delta_angle,0,0);//here deltaX/-Y refers to the mouse-movement not the angle difference
+                const newEulerAngles = rotateEulerAngles(oldX,oldY,oldZ,delta_angle,0,0);//here deltaX/-Y refers to the mouse-movement not the angle difference
     
                 const x = newEulerAngles[0]
                 const y = newEulerAngles[1]
@@ -1047,5 +1047,7 @@ function updatingLaueLoop(){
 
     LAUE_VIEW.updateCanvas();
     setTimeout(updatingLaueLoop, 5)
+
 }
 updatingLaueLoop()
+

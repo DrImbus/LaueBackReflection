@@ -13,8 +13,11 @@ canvas.height = canvasContainer.clientHeight;
 var mid_x = canvas.width/2;
 var mid_y = canvas.height/2;
 
-const handles = [[0,0],
-                [1,1]]
+const handles = [
+                [0,0],
+                [0.15,0.8],
+                [1,1]
+            ]
 
 window.onresize = () => {
     canvas.width = canvas.clientWidth;
@@ -165,11 +168,11 @@ canvasContainer.addEventListener("mousemove", event => {
 export function contrast(x){
     x = x**(1/2)
     if(x < 0){
-        console.log(`f(${x}) = ${0}`)
+        //console.log(`f(${x}) = ${0}`)
         return 0
     }
     if(x > 1){
-        console.log(`f(${x}) = ${1}`)
+        //console.log(`f(${x}) = ${1}`)
         return 1
     }
 
@@ -180,11 +183,11 @@ export function contrast(x){
         if(x >= a[0] && x <= b[0]){
             const distanceBetween = (x-a[0])/(b[0]-a[0])
 
-            console.log(`f(${x}) = ${((b[1]-a[1])*distanceBetween + a[1])}`)
+            //console.log(`f(${x}) = ${((b[1]-a[1])*distanceBetween + a[1])}`)
             return ((b[1]-a[1])*distanceBetween + a[1])
         }
     }
-
+    console.log("no result")
 }
 
 
