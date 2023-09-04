@@ -206,7 +206,8 @@ export function updateCanvas(){
     context.fillStyle = `rgb(${50},${50},${50})`;
     context.fillRect(0, 0, canvas.width, canvas.height);
     
-    drawRect(-screen_width/2, -screen_height/2,screen_width,screen_height)
+    const screen_color = `rgb(${20},${20},${20})`
+    drawRect(-screen_width/2, -screen_height/2,screen_width,screen_height,screen_color)
 
     //draw coordinates
     drawLine([0,0], [10,0], "red",  1);//5mm
@@ -229,10 +230,7 @@ export function updateCanvas(){
         }
         counter++
     }
-
-    drawScale();
- 
-      
+    drawScale();     
 }
 
 /****************************************
@@ -430,5 +428,6 @@ export function clickInBoundingBox(mouseX,mouseY){
 
 
 export function getImage(){
+    const screenshot_container =  document.getElementById("laue-canvas-screenshot-container")
     return canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
 }

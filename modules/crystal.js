@@ -646,7 +646,6 @@ export function calculateLaueReflections(maxHKLParam = maxHKL){
             }
         }
     }
-    //console.log(allReflections)
 
     reflections = []
     for(let i = 0; i < temp_reflections.length; i++){

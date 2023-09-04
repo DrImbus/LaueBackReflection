@@ -53,7 +53,7 @@
                     <span class="input-unit">mm</span>
                 </div>
                 <div class="input-container">
-                    <span class="input-name">Cutout-Radius: </span>
+                    <span class="input-name">Aperture-Radius: </span>
                     <input type="number" value="5" id="cutout-radius">
                     <span class="input-unit">mm</span>
                 </div>
@@ -123,9 +123,9 @@
                 <div class="variable-container">
                     <div class="input-container">
                         <input class="atom-type" type="text" value ="C">
-                        <input class="x-input" type="number" min="0" max="1" value="4">
-                        <input class="y-input" type="number" min="0" max="1" value="5">
-                        <input class="z-input" type="number" min="0" max="1" value="6"> 
+                        <input class="x-input" type="number" min="0" max="1" value="4" step="0.1">
+                        <input class="y-input" type="number" min="0" max="1" value="5" step="0.1">
+                        <input class="z-input" type="number" min="0" max="1" value="6" step="0.1"> 
                         <button class="remove"><p>-</p></button>
                     </div>
                 </div>
@@ -148,7 +148,7 @@
             </div>
             -->
             <button class="section-headline">
-                Display Settings
+                Laue Settings
             </button>
             <div class="input-section">
                 <!--
@@ -248,21 +248,25 @@
                     </div>
 
                 </div>
-                <div id="laue-canvas-container" class="rotate">
-                    <canvas>
+
+                <div id="laue-canvas-screenshot-container">
+                    <div id="laue-canvas-container" class="rotate">
+                        <canvas>
+                        
+                        </canvas>
+                    </div>
                     
-                    </canvas>
-                </div>
-                
-                <div id="laue-infobox-container">                   
-                    <div class="reflection-infobox">
-                        <p>index: 1 0 0</p>
-                        <p>2 &Theta; = 180°</p>
-                        <p>wavelength</p>
-                        <p>intensity: 0.5</p>
-                        <p># = 2</p>
+                    <div id="laue-infobox-container">                   
+                        <div class="reflection-infobox">
+                            <p>index: 1 0 0</p>
+                            <p>2 &Theta; = 180°</p>
+                            <p>wavelength</p>
+                            <p>intensity: 0.5</p>
+                            <p># = 2</p>
+                        </div>
                     </div>
                 </div>
+                
             </div>
         </div>
 
